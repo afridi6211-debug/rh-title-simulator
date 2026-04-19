@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Red Hat Title Simulator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;700&family=Red+Hat+Text:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root { --rh-red: #EE0000; --rh-black: #000000; --rh-grey: #f0f0f0; }
+        body { font-family: 'Red Hat Text', sans-serif; background: var(--rh-grey); padding: 40px; color: var(--rh-black); }
+        h1.block-title { font-family: 'Red Hat Display'; font-size: 1.5rem; text-transform: uppercase; margin-bottom: 30px; border-left: 5px solid var(--rh-red); padding-left: 15px; }
+        .container { display: flex; gap: 20px; max-width: 1400px; margin: 0 auto; }
+        .column { flex: 1; background: white; padding: 25px; border-radius: 2px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-top: 4px solid #ddd; }
+        h2 { font-family: 'Red Hat Display'; font-size: 0.9rem; border-bottom: 1px solid #eee; padding-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+        .option-item { display: flex; align-items: center; padding: 10px; border: 1px solid #eee; margin-bottom: 8px; cursor: pointer; font-size: 0.85rem; }
+        .option-item input { margin-right: 12px; accent-color: var(--rh-red); width: 16px; height: 16px; }
+        .search-box { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ccc; font-family: 'Red Hat Text'; border-radius: 4px; box-sizing: border-box; }
+        .title-display { max-width: 1400px; margin: 30px auto; background: var(--rh-black); color: white; padding: 40px; border-left: 10px solid var(--rh-red); }
+        .highlight-label { color: var(--rh-red); font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 2px; margin-bottom: 10px; }
+        .highest-title-text { font-size: 2.5rem; font-weight: 700; font-family: 'Red Hat Display'; margin-bottom: 40px; }
+        .results-section h4 { font-size: 0.7rem; text-transform: uppercase; color: #888; margin-bottom: 15px; letter-spacing: 1px; border-top: 1px solid #333; padding-top: 20px; }
+        .title-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px 60px; }
+        .title-entry { display: flex; align-items: baseline; gap: 20px; border-bottom: 1px solid #222; padding-bottom: 8px; }
+        .acronym { font-weight: 700; color: var(--rh-red); min-width: 90px; font-size: 1.1rem; }
+        .full-name { font-weight: 400; color: #fff; font-size: 1.1rem; }
+        .block-separator { border-top: 2px solid #ccc; margin: 60px 0; }
+    </style>
+</head>
+<body>
+
+<h1 class="block-title">Title simulator based on the specialization</h1>
+<div class="container" id="block1">
+    <div class="column">
+        <h2>Specialization</h2>
+        <label class="option-item"><input type="radio" name="spec" value="linux" checked onclick="initTrack()"> Enterprise Linux</label>
+        <label class="option-item"><input type="radio" name="spec" value="ansible" onclick="initTrack()"> Ansible</label>
+        <label class="option-item"><input type="radio" name="spec" value="openshift" onclick="initTrack()"> OpenShift</label>
+        <label class="option-item"><input type="radio" name="spec" value="cloudnative" onclick="initTrack()"> Cloud-native Applications</label>
+        <label class="option-item"><input type="radio" name="spec" value="ai" onclick="initTrack()"> Applications AI</label>
+    </div>
+    <div class="column"><h2>Base Exams</h2><div id="base-container"></div></div>
+    <div class="column"><h2>Specialist Exams</h2><div id="specialist-container"></div></div>
+</div>
+<div class="title-display">
+    <div class="highlight-label">Highest Achievement</div>
+    <div id="highest-title-b1" class="highest-title-text">Candidate</div>
+    <div class="results-section">
+        <h4>Primary Titles</h4>
+        <div id="primary-list-b1" class="title-grid"></div>
+    </div>
+</div>
+
+<div class="block-separator"></div>
+
+<h1 class="block-title">Title simulator based on the exams</h1>
+<div class="container" id="block2">
+    <div class="column" style="flex: 2;">
+        <h2>Select Exams Portfolio</h2>
+        <input type="text" id="examSearch" class="search-box" placeholder="Filter by code (e.g., EX200)..." onkeyup="filterExams()">
+        <div id="all-exams-list" style="max-height: 400px; overflow-y: auto;"></div>
+    </div>
+</div>
+<div class="title-display">
+    <div class="highlight-label">Portfolio Highest Achievement</div>
+    <div id="highest-title-b2" class="highest-title-text">Candidate</div>
+    <div class="results-section">
+        <h4>Validated Portfolio Titles</h4>
+        <div id="primary-list-b2" class="title-grid"></div>
+    </div>
+</div>
+
+<script>
+    // Certification Framework Data 
+    const certNames = { 'EX200': 'System Administrator', 'EX294': 'Engineer', 'EX342': 'Advanced System Administrator', 'EX188': 'Developer', 'EX280': 'System Administrator', 'EX380': 'Advanced System Administrator', 'EX288': 'Advanced Developer', 'EX267': 'Developer' };
+    
+    const certData = {
+        linux: { base: ['EX200', 'EX294', 'EX342'], specialists: ['EX210','EX260','EX358','EX362','EX403','EX415','EX436','EX442'], trackName: 'Enterprise Linux' },
+        ansible: { base: ['EX200', 'EX294'], specialists: ['EX336','EX374','EX417','EX457','EX467'], trackName: 'Ansible' },
+        openshift: { base: ['EX280', 'EX380'], specialists: ['EX316','EX336','EX370','EX430','EX432','EX229','EX480'], trackName: 'OpenShift' },
+        cloudnative: { base: ['EX188', 'EX288'], specialists: ['EX183','EX221','EX240','EX248','EX328','EX378','EX482'], trackName: 'Cloud-native Applications' },
+        ai: { base: ['EX267'], specialists: [], trackName: 'Applications AI' }
+    };
+
+    function renderTitles(titleArray) {
+        // Ensure no duplicates in the visual display
+        const seen = new Set();
+        return titleArray.filter(t => {
+            const k = `${t.acr}-${t.full}`;
+            return seen.has(k) ? false : seen.add(k);
+        }).map(t => `<div class="title-entry"><span class="acronym">${t.acr}</span><span class="full-name">${t.full}</span></div>`).join('');
+    }
+
+    // --- TRACK LOGIC (BLOCK 1) ---
+    function initTrack() {
+        const spec = document.querySelector('input[name="spec"]:checked').value;
+        const data = certData[spec];
+        document.getElementById('base-container').innerHTML = data.base.map(id => `<label class="option-item"><input type="checkbox" class="b1-cb" data-type="base" value="${id}" onclick="calculateB1()"> ${id}</label>`).join('');
+        document.getElementById('specialist-container').innerHTML = data.specialists.map(id => `<label class="option-item"><input type="checkbox" class="b1-cb" data-type="spec" value="${id}" onclick="calculateB1()"> ${id}</label>`).join('');
+        calculateB1();
+    }
+
+    function calculateB1() {
+        const spec = document.querySelector('input[name="spec"]:checked').value;
+        const data = certData[spec];
+        const selected = Array.from(document.querySelectorAll('.b1-cb:checked'));
+        const bases = selected.filter(i => i.dataset.type === 'base').map(i => i.value);
+        const specs = selected.filter(i => i.dataset.type === 'spec').map(i => i.value);
+        
+        let titles = []; let highest = "Candidate";
+
+        bases.forEach(id => {
+            const name = `Red Hat Certified ${certNames[id] || 'Specialist'} in ${data.trackName}`;
+            titles.push({ acr: id === 'EX200' ? 'RHCSA' : (id === 'EX294' ? 'RHCE' : 'Adv.'), full: name });
+            highest = name;
+        });
+
+        // Track-specific RHCE/Architect logic 
+        if (bases.length >= 2) {
+            const eng = `Red Hat Certified Engineer in ${data.trackName}`;
+            titles.push({ acr: 'RHCE', full: eng });
+            highest = eng;
+        }
+
+        if (specs.length >= 3 && bases.length >= 2) {
+            const lvl = specs.length > 3 ? ` (Level ${specs.length - 2})` : "";
+            const arch = `Red Hat Certified Architect in ${data.trackName}${lvl}`;
+            titles.push({ acr: 'RHCA', full: arch });
+            highest = arch;
+        }
+
+        document.getElementById('highest-title-b1').innerText = highest;
+        document.getElementById('primary-list-b1').innerHTML = renderTitles(titles);
+    }
+
+    // --- PORTFOLIO LOGIC (BLOCK 2) ---
+    function initBlock2() {
+        let exams = new Set();
+        Object.values(certData).forEach(d => [...d.base, ...d.specialists].forEach(id => exams.add(id)));
+        document.getElementById('all-exams-list').innerHTML = Array.from(exams).sort().map(id => `
+            <label class="option-item b2-row" data-id="${id.toLowerCase()}"><input type="checkbox" class="b2-cb" value="${id}" onclick="calculateB2()"> <strong>${id}</strong></label>
+        `).join('');
+    }
+
+    function calculateB2() {
+        const selected = Array.from(document.querySelectorAll('.b2-cb:checked')).map(c => c.value);
+        let titles = []; let highest = "Candidate";
+
+        // Validate selection against EVERY track independently 
+        Object.values(certData).forEach(track => {
+            const trackBases = selected.filter(id => track.base.includes(id));
+            const trackSpecs = selected.filter(id => track.specialists.includes(id));
+
+            trackBases.forEach(id => {
+                const name = `Red Hat Certified ${certNames[id]} in ${track.trackName}`;
+                titles.push({ acr: id, full: name });
+                highest = name;
+            });
+
+            if (trackBases.length >= 2) {
+                titles.push({ acr: 'RHCE', full: `Red Hat Certified Engineer in ${track.trackName}` });
+            }
+
+            // RHCA only unlocks if prerequisites are met WITHIN this track 
+            if (trackBases.length >= 2 && trackSpecs.length >= 3) {
+                const lvl = trackSpecs.length > 3 ? ` (Level ${trackSpecs.length - 2})` : "";
+                const arch = `Red Hat Certified Architect in ${track.trackName}${lvl}`;
+                titles.push({ acr: 'RHCA', full: arch });
+                highest = arch;
+            }
+        });
+
+        document.getElementById('highest-title-b2').innerText = highest;
+        document.getElementById('primary-list-b2').innerHTML = renderTitles(titles);
+    }
+
+    function filterExams() {
+        const q = document.getElementById('examSearch').value.toLowerCase();
+        document.querySelectorAll('.b2-row').forEach(r => r.style.display = r.dataset.id.includes(q) ? 'flex' : 'none');
+    }
+
+    initTrack(); initBlock2();
+</script>
+</body>
+</html>
